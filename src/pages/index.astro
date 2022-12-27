@@ -1,4 +1,6 @@
 ---
+import '../style.css';
+
 import dayjs from 'dayjs';
 const today = dayjs().format('MMM D, YYYY');
 ---
@@ -12,9 +14,13 @@ const today = dayjs().format('MMM D, YYYY');
 		<title>Beb Todo</title>
 	</head>
 	<body>
-		<h1>Tasks for {today}</h1>
-		<task-list data-name="Anahita"></task-list>
-		<task-list data-name="Luke"></task-list>
+		<header>
+			<h1>Tasks for <time>{today}</time></h1>
+		</header>
+		<main>
+			<anahita-list></anahita-list>
+			<luke-list></luke-list>
+		</main>
 
 		<script>
 			import '../elements/task-list.js';

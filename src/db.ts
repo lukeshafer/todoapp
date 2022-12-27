@@ -15,9 +15,15 @@ export const getTaskListForUserByName = async (name: string) => {
 	});
 	const dateToCheck = new Date();
 	dateToCheck.setHours(0, 0, 0, 0);
-	return result.filter(
+	const filteredTasks = result.filter(
 		(task) =>
 			task.completed === false ||
 			(task.completedAt && task.completedAt > dateToCheck)
 	);
+	filteredTasks.sort((a, b) => {
+		if (a.completed) return 1;
+		if (b.completed) return -1;
+		return 0;
+	});
+	return filteredTasks;
 };

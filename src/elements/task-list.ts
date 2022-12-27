@@ -11,8 +11,13 @@ taskListTemplate.innerHTML = html`
 		<ul></ul>
 		<form method="post" action="/api/task">
 			<input name="userId" type="text" hidden />
-			<input name="titleText" type="text" required />
-			<button type="submit">Submit</button>
+			<label>Add Task</label>
+			<input
+				name="titleText"
+				type="text"
+				required
+				placeholder="Add Task" />
+			<button type="submit">Add</button>
 		</form>
 	</section>
 `;
@@ -41,6 +46,11 @@ export class TaskList extends HTMLElement {
 
 		this.querySelector<HTMLInputElement>('input[name="userId"]')!.value =
 			this._userId;
+
+		this.querySelector<HTMLInputElement>(
+			'input[name="titleText"]'
+		)!.id = `input-${this._userId}`;
+		this.querySelector('label')!.htmlFor = `input-${this._userId}`;
 
 		const form = this.querySelector('form')!;
 		form.onsubmit = async (e) => {
@@ -118,4 +128,22 @@ export class TaskList extends HTMLElement {
 	}
 }
 
-if (!import.meta.env.SSR) customElements.define('task-list', TaskList);
+class LukeList extends HTMLElement {
+	constructor() {
+		super();
+		this.innerHTML = html`<task-list data-name="Luke"></task-list>`;
+	}
+}
+
+class AnahitaList extends HTMLElement {
+	constructor() {
+		super();
+		this.innerHTML = html`<task-list data-name="Anahita"></task-list>`;
+	}
+}
+
+if (!import.meta.env.SSR) {
+	customElements.define('task-list', TaskList);
+	customElements.define('luke-list', LukeList);
+	customElements.define('anahita-list', AnahitaList);
+}
