@@ -48,7 +48,6 @@ export const post: APIRoute = async ({ request, redirect }) => {
 			description: parseResult.data.title,
 		},
 	});
-	console.log(result);
 
 	return redirect('/', 302);
 };

@@ -17,12 +17,8 @@ export const post: APIRoute = async ({ request, redirect }) => {
 		return new Response(JSON.stringify({ status: 400 }));
 	}
 
-	const result = await client.task.update({
+	await client.task.delete({
 		where: { id: parseResult.data.id },
-		data: {
-			completed: parseResult.data.completed,
-			completedAt: parseResult.data.completed ? new Date() : null,
-		},
 	});
 
 	return redirect('/', 302);

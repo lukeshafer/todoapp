@@ -13,8 +13,8 @@ export const getTaskListForUserByName = async (name: string) => {
 		where: { userId: user.id },
 		include: { subtasks: true },
 	});
-	const dateToCheck = new Date('2021-08-01');
-	//dateToCheck.setHours(dateToCheck.getHours() - 12); // 12 hours ago
+	const dateToCheck = new Date();
+	dateToCheck.setHours(0, 0, 0, 0);
 	return result.filter(
 		(task) =>
 			task.completed === false ||

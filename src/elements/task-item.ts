@@ -1,59 +1,71 @@
 import html from '../lib/html';
 import type { TaskList } from './task-list';
 
+const taskItemTemplate = document.createElement('template');
+taskItemTemplate.innerHTML = html`
+	<input type="checkbox" name="completed" />
+	<label></label>
+	<button class="delete">Delete</button>
+`;
+
 export class TaskItem extends HTMLElement {
-	dataTitle;
-	dataId;
-	completed;
-	dataName;
-	template = (data: { title: string; completed: boolean; id: string }) =>
-		html`
-			<input
-				type="checkbox"
-				name="completed"
-				id="${data.id}"
-				${data.completed ? 'checked' : ''} />
-			<label for="${data.id}">${data.title}</label>
-		`;
+	_text: string;
+	_id: string;
+	_completed: boolean;
+	_name: string;
+	$checkbox: HTMLInputElement;
+	$deleteButton: HTMLButtonElement;
+	$parentList: TaskList;
 
 	constructor() {
 		super();
+		this.appendChild(taskItemTemplate.content.cloneNode(true));
 
-		if (!this.dataset.title) {
-			throw new Error('data-title is required');
-		}
-		this.dataTitle = this.dataset.title ?? '';
-		this.completed = this.dataset.completed === 'true';
-		this.dataName = this.dataset.name ?? '';
+		this._text = '';
+		this._id = '';
+		this._completed = false;
+		this._name = '';
+	}
 
-		if (!this.dataset.id) {
-			throw new Error('data-id is required');
-		}
-		this.dataId = this.dataset.id ?? Symbol().toString();
+	connectedCallback() {
+		if (!this.dataset.text) throw new Error('data-title is required');
+		this._text = this.dataset.text;
 
-		this.appendChild(
-			this.template({
-				title: this.dataTitle,
-				completed: this.completed,
-				id: this.dataId,
-			})
-		);
+		this._id = this.dataset.id ?? '';
 
-		this.querySelector('input')!.onchange = (e) => {
-			const target = e.target as HTMLInputElement;
-			this.updateCompletedStatus(target.checked);
+		this._completed = this.dataset.completed === 'true';
+		this._name = this.dataset.name ?? '';
+
+		this.$checkbox = this.querySelector('input')!;
+		this.$checkbox.checked = this._completed;
+		this.$checkbox.id = this._id;
+		this.$checkbox.onchange = () => {
+			this.updateCompletedStatus(this.$checkbox.checked);
 		};
+
+		const label = this.querySelector('label')!;
+		label.htmlFor = this._id;
+		label.textContent = this._text;
+
+		this.$deleteButton = this.querySelector('button.delete')!;
+		this.$deleteButton.onclick = () => {
+			this.delete();
+		};
+
+		this.$parentList = document.querySelector(
+			`task-list[data-name="${this._name}"]`
+		)!;
 	}
 
 	async updateCompletedStatus(isCompleted: boolean) {
-		this.completed = isCompleted;
+		this._completed = isCompleted;
 		this.querySelector('input')!.checked = isCompleted;
 
 		const response = await fetch('/api/completeTask', {
 			method: 'post',
 			body: new URLSearchParams(
 				Object.entries({
-					id: this.dataId,
+					id: this._id,
 					completed: String(isCompleted),
 				})
 			),
@@ -62,10 +74,23 @@ export class TaskItem extends HTMLElement {
 			console.error('updateCompletedStatus failed');
 			throw new Error();
 		}
-		const parentList = document.querySelector(
-			`task-list[data-name="${this.dataName}"]`
-		)! as TaskList;
-		parentList.refresh();
+		this.$parentList.refresh();
+	}
+
+	async delete() {
+		const response = await fetch('/api/deleteTask', {
+			method: 'post',
+			body: new URLSearchParams(
+				Object.entries({
+					id: this._id,
+				})
+			),
+		});
+		if (!response.ok) {
+			console.error('delete failed');
+			throw new Error();
+		}
+		this.$parentList.refresh();
 	}
 }
 
