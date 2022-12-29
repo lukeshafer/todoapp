@@ -166,6 +166,12 @@
 		height: 1px;
 	}
 
+	task-item:has(:checked) {
+		opacity: 0.8;
+		background-color: var(--base-1);
+		background-image: none;
+	}
+
 	task-item label:hover {
 		opacity: 0.8;
 	}

@@ -8,18 +8,28 @@ const taskInputSchema = z.object({
 });
 export type TaskCompletionInput = z.infer<typeof taskInputSchema>;
 export const post: APIRoute = async ({ request, redirect }) => {
-	const data = await request.text();
+	try {
+		const data = await request.text();
 
-	const params = Object.fromEntries([...new URLSearchParams(data).entries()]);
-	const parseResult = taskInputSchema.safeParse(params);
+		const params = Object.fromEntries([
+			...new URLSearchParams(data).entries(),
+		]);
+		const parseResult = taskInputSchema.safeParse(params);
 
-	if (!parseResult.success) {
-		return new Response(JSON.stringify({ status: 400 }));
+		if (!parseResult.success) {
+			return new Response(JSON.stringify({ status: 400 }));
+		}
+
+		await client.task.delete({
+			where: { id: parseResult.data.id },
+		});
+
+		return redirect('/', 302);
+	} catch {
+		console.error('delete task');
+		return new Response(null, {
+			status: 500,
+			statusText: 'Uh oh!',
+		});
 	}
-
-	await client.task.delete({
-		where: { id: parseResult.data.id },
-	});
-
-	return redirect('/', 302);
 };

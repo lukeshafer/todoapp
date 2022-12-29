@@ -1,28 +1,32 @@
 import html from '../lib/html';
-import { taskListSchema } from '../lib/api-schemas';
+import { TaskInput, taskListSchema } from '../lib/api-schemas';
+import autoAnimate from '@formkit/auto-animate';
 
-//import type { TaskItem } from './task-item';
-import type { TaskInput } from '../pages/api/tasks';
+import type { TaskItem } from '../elements/task-item';
 
-const taskListTemplate = document.createElement('template');
-taskListTemplate.innerHTML = html`
-	<section>
-		<h2></h2>
-		<ul></ul>
-		<form method="post" action="/api/task">
-			<input name="userId" type="text" hidden />
-			<label>Add Task</label>
-			<input
-				name="titleText"
-				type="text"
-				required
-				placeholder="Add Task" />
-			<button type="submit">Add</button>
-		</form>
-	</section>
-`;
+const getTemplate = () => {
+	const taskListTemplate = document.createElement('template');
+	taskListTemplate.innerHTML = html`
+		<section>
+			<h2></h2>
+			<ul></ul>
+			<form method="post" action="/api/task">
+				<input name="userId" type="text" hidden />
+				<label>Add Task</label>
+				<input
+					name="titleText"
+					type="text"
+					required
+					placeholder="Add Task" />
+				<button type="submit">Add</button>
+			</form>
+		</section>
+	`;
+	return taskListTemplate;
+};
 
-export class TaskList extends HTMLElement {
+export type TaskList = TaskListClass;
+class TaskListClass extends HTMLElement {
 	_name;
 	// @ts-ignore
 	_list: HTMLUListElement;
@@ -35,10 +39,11 @@ export class TaskList extends HTMLElement {
 	}
 
 	async connectedCallback() {
-		this.appendChild(taskListTemplate.content.cloneNode(true));
+		this.appendChild(getTemplate().content.cloneNode(true));
 		this._name = this.dataset.name ?? '';
 		this.querySelector('h2')!.textContent = this._name;
 		this._list = this.querySelector('ul')!;
+		autoAnimate(this._list);
 
 		this._userId = await fetch(`/api/userId?name=${this._name}`).then(
 			(res) => res.text()
@@ -62,10 +67,11 @@ export class TaskList extends HTMLElement {
 				title: text,
 			};
 
-			this.addNewListItem({
+			const tempId = Symbol().toString();
+			const item = this.addNewListItem({
 				text,
 				completed: false,
-				id: '',
+				id: tempId,
 				name: this._name,
 			});
 			form.titleText.value = '';
@@ -78,6 +84,10 @@ export class TaskList extends HTMLElement {
 			if (!response.ok) {
 				throw new Error();
 			}
+			const id = await response.text();
+			item.dataset.id = id;
+			item.id = id;
+
 			this.refresh();
 		};
 		this.refresh();
@@ -94,13 +104,14 @@ export class TaskList extends HTMLElement {
 		const li = document.createElement('li');
 		li.innerHTML = html`
 			<task-item
-				data-id="${id}"
+				id="${id}"
 				data-text="${text}"
-				data-name="${name}"
-				data-completed="${completed}">
+				name="${name}"
+				completed="${completed}">
 			</task-item>
 		`;
 		this._list.appendChild(li);
+		return li.firstElementChild as TaskItem;
 	}
 
 	async refresh() {
@@ -116,7 +127,20 @@ export class TaskList extends HTMLElement {
 			throw new Error("Couldn't parse tasks");
 		}
 
-		this._list.innerHTML = '';
+		const tasks = parsed.data;
+
+		const currentListItems = [...this._list.children] as HTMLLIElement[];
+		const completedItems = currentListItems.filter((el) => {
+			const item = el.firstElementChild as TaskItem;
+			const result = tasks.findIndex(({ id }) => item.id === id);
+			if (result >= 0) {
+				tasks.splice(result, 1);
+				if (item.getAttribute('completed') === 'true') return true;
+			} else this._list.removeChild(el);
+			return false;
+		});
+
+		//this._list.innerHTML = '';
 		parsed.data.forEach((task) => {
 			this.addNewListItem({
 				text: task.title,
@@ -125,25 +149,10 @@ export class TaskList extends HTMLElement {
 				name: this._name,
 			});
 		});
+
+		completedItems.forEach((item) => this._list.appendChild(item));
 	}
 }
 
-class LukeList extends HTMLElement {
-	constructor() {
-		super();
-		this.innerHTML = html`<task-list data-name="Luke"></task-list>`;
-	}
-}
-
-class AnahitaList extends HTMLElement {
-	constructor() {
-		super();
-		this.innerHTML = html`<task-list data-name="Anahita"></task-list>`;
-	}
-}
-
-if (!import.meta.env.SSR) {
-	customElements.define('task-list', TaskList);
-	customElements.define('luke-list', LukeList);
-	customElements.define('anahita-list', AnahitaList);
-}
+export const tagName = 'task-list';
+customElements.define(tagName, TaskListClass);

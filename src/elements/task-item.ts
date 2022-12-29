@@ -1,51 +1,79 @@
 import html from '../lib/html';
 import type { TaskList } from './task-list';
 
-const taskItemTemplate = document.createElement('template');
-taskItemTemplate.innerHTML = html`
-	<input type="checkbox" name="completed" />
-	<label></label>
-	<button class="delete">Delete</button>
-`;
+const getTemplate = () => {
+	const taskItemTemplate = document.createElement('template');
+	taskItemTemplate.innerHTML = html`
+		<input type="checkbox" name="completed" />
+		<label></label>
+		<button class="delete">Delete</button>
+	`;
+	return taskItemTemplate;
+};
 
-export class TaskItem extends HTMLElement {
-	_text: string;
-	_id: string;
-	_completed: boolean;
-	_name: string;
-	$checkbox: HTMLInputElement;
-	$deleteButton: HTMLButtonElement;
-	$parentList: TaskList;
+export type TaskItem = TaskItemElement;
+class TaskItemElement extends HTMLElement {
+	text: string;
+	$checkbox?: HTMLInputElement;
+	$deleteButton?: HTMLButtonElement;
+	$parentList?: TaskList;
 
 	constructor() {
 		super();
-		this.appendChild(taskItemTemplate.content.cloneNode(true));
+		this.appendChild(getTemplate().content.cloneNode(true));
 
-		this._text = '';
-		this._id = '';
-		this._completed = false;
-		this._name = '';
+		this.text = '';
+	}
+
+	static get observedAttributes() {
+		return ['id', 'completed'];
+	}
+
+	async attributeChangedCallback(
+		name: string,
+		oldValue: string,
+		newValue: string
+	) {
+		switch (name) {
+			case 'id':
+				if (this.$checkbox) this.$checkbox.id = newValue;
+				break;
+			case 'completed':
+				const isCompleted = newValue === 'true';
+				if (this.$checkbox && this.$checkbox.checked !== isCompleted)
+					this.$checkbox.checked = isCompleted;
+				if (oldValue == null) return;
+				const response = await fetch('/api/completeTask', {
+					method: 'post',
+					body: new URLSearchParams(
+						Object.entries({
+							id: this.id,
+							completed: String(isCompleted),
+						})
+					),
+				});
+				if (!response.ok) {
+					console.error('Unable to change status');
+					throw new Error();
+				}
+				this.$parentList?.refresh();
+				break;
+		}
 	}
 
 	connectedCallback() {
 		if (!this.dataset.text) throw new Error('data-title is required');
-		this._text = this.dataset.text;
-
-		this._id = this.dataset.id ?? '';
-
-		this._completed = this.dataset.completed === 'true';
-		this._name = this.dataset.name ?? '';
+		this.text = this.dataset.text;
 
 		this.$checkbox = this.querySelector('input')!;
-		this.$checkbox.checked = this._completed;
-		this.$checkbox.id = this._id;
-		this.$checkbox.onchange = () => {
-			this.updateCompletedStatus(this.$checkbox.checked);
-		};
+		this.$checkbox.id = `checkbox-${this.id}`;
+		this.$checkbox.checked = this.getAttribute('completed') === 'true';
+		this.$checkbox.onchange = () =>
+			this.setAttribute('completed', String(this.$checkbox!.checked));
 
 		const label = this.querySelector('label')!;
-		label.htmlFor = this._id;
-		label.textContent = this._text;
+		label.htmlFor = this.$checkbox.id;
+		label.textContent = this.text;
 
 		this.$deleteButton = this.querySelector('button.delete')!;
 		this.$deleteButton.onclick = () => {
@@ -53,28 +81,8 @@ export class TaskItem extends HTMLElement {
 		};
 
 		this.$parentList = document.querySelector(
-			`task-list[data-name="${this._name}"]`
+			`task-list[data-name="${this.getAttribute('name')}"]`
 		)!;
-	}
-
-	async updateCompletedStatus(isCompleted: boolean) {
-		this._completed = isCompleted;
-		this.querySelector('input')!.checked = isCompleted;
-
-		const response = await fetch('/api/completeTask', {
-			method: 'post',
-			body: new URLSearchParams(
-				Object.entries({
-					id: this._id,
-					completed: String(isCompleted),
-				})
-			),
-		});
-		if (!response.ok) {
-			console.error('updateCompletedStatus failed');
-			throw new Error();
-		}
-		this.$parentList.refresh();
 	}
 
 	async delete() {
@@ -82,7 +90,7 @@ export class TaskItem extends HTMLElement {
 			method: 'post',
 			body: new URLSearchParams(
 				Object.entries({
-					id: this._id,
+					id: this.id,
 				})
 			),
 		});
@@ -90,8 +98,9 @@ export class TaskItem extends HTMLElement {
 			console.error('delete failed');
 			throw new Error();
 		}
-		this.$parentList.refresh();
+		this.$parentList!.refresh();
 	}
 }
 
-if (!import.meta.env.SSR) customElements.define('task-item', TaskItem);
+export const tagName = 'task-item';
+customElements.define(tagName, TaskItemElement);

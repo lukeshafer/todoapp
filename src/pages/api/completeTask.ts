@@ -8,22 +8,32 @@ const taskInputSchema = z.object({
 });
 export type TaskCompletionInput = z.infer<typeof taskInputSchema>;
 export const post: APIRoute = async ({ request, redirect }) => {
-	const data = await request.text();
+	try {
+		const data = await request.text();
 
-	const params = Object.fromEntries([...new URLSearchParams(data).entries()]);
-	const parseResult = taskInputSchema.safeParse(params);
+		const params = Object.fromEntries([
+			...new URLSearchParams(data).entries(),
+		]);
+		const parseResult = taskInputSchema.safeParse(params);
 
-	if (!parseResult.success) {
-		return new Response(JSON.stringify({ status: 400 }));
+		if (!parseResult.success) {
+			return new Response(JSON.stringify({ status: 400 }));
+		}
+
+		const result = await client.task.update({
+			where: { id: parseResult.data.id },
+			data: {
+				completed: parseResult.data.completed,
+				completedAt: parseResult.data.completed ? new Date() : null,
+			},
+		});
+
+		return redirect('/', 302);
+	} catch {
+		console.error('complete task');
+		return new Response(null, {
+			status: 500,
+			statusText: 'Uh oh!',
+		});
 	}
-
-	const result = await client.task.update({
-		where: { id: parseResult.data.id },
-		data: {
-			completed: parseResult.data.completed,
-			completedAt: parseResult.data.completed ? new Date() : null,
-		},
-	});
-
-	return redirect('/', 302);
 };
