@@ -15,6 +15,7 @@ export type TaskItem = TaskItemElement;
 class TaskItemElement extends HTMLElement {
 	text: string;
 	$checkbox?: HTMLInputElement;
+	$label?: HTMLLabelElement;
 	$deleteButton?: HTMLButtonElement;
 	$parentList?: TaskList;
 
@@ -36,7 +37,9 @@ class TaskItemElement extends HTMLElement {
 	) {
 		switch (name) {
 			case 'id':
-				if (this.$checkbox) this.$checkbox.id = newValue;
+				const checkboxId = `checkbox-${newValue}`;
+				if (this.$checkbox) this.$checkbox.id = checkboxId;
+				if (this.$label) this.$label.htmlFor = checkboxId;
 				break;
 			case 'completed':
 				const isCompleted = newValue === 'true';
@@ -62,7 +65,7 @@ class TaskItemElement extends HTMLElement {
 	}
 
 	connectedCallback() {
-		if (!this.dataset.text) throw new Error('data-title is required');
+		if (!this.dataset.text) throw new Error('data-text is required');
 		this.text = this.dataset.text;
 
 		this.$checkbox = this.querySelector('input')!;
@@ -71,9 +74,9 @@ class TaskItemElement extends HTMLElement {
 		this.$checkbox.onchange = () =>
 			this.setAttribute('completed', String(this.$checkbox!.checked));
 
-		const label = this.querySelector('label')!;
-		label.htmlFor = this.$checkbox.id;
-		label.textContent = this.text;
+		this.$label = this.querySelector('label')!;
+		this.$label.htmlFor = this.$checkbox.id;
+		this.$label.textContent = this.text;
 
 		this.$deleteButton = this.querySelector('button.delete')!;
 		this.$deleteButton.onclick = () => {

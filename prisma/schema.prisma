@@ -25,6 +25,7 @@ model Task {
     user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
     subtasks    Subtask[]
     description String
+    priority    String    @default("normal")
     completed   Boolean   @default(false)
     dueAt       DateTime?
     completedAt DateTime?

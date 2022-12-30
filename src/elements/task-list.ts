@@ -4,29 +4,47 @@ import autoAnimate from '@formkit/auto-animate';
 
 import type { TaskItem } from '../elements/task-item';
 
+const taskListTemplateString = html`
+	<section>
+		<h2></h2>
+		<ul></ul>
+		<form method="post" action="/api/task">
+			<input name="userId" type="text" hidden />
+			<label>Add Task</label>
+			<input
+				name="titleText"
+				type="text"
+				required
+				placeholder="Add Task" />
+			<button type="submit">Add</button>
+		</form>
+	</section>
+`;
+
+export const listItemTemplateString = (data: {
+	text: string;
+	completed: boolean;
+	id: string;
+	name: string;
+}) => html`
+	<li>
+		<task-item
+			id="${data.id}"
+			data-text="${data.text}"
+			name="${data.name}"
+			completed="${data.completed}">
+		</task-item>
+	</li>
+`;
+
 const getTemplate = () => {
 	const taskListTemplate = document.createElement('template');
-	taskListTemplate.innerHTML = html`
-		<section>
-			<h2></h2>
-			<ul></ul>
-			<form method="post" action="/api/task">
-				<input name="userId" type="text" hidden />
-				<label>Add Task</label>
-				<input
-					name="titleText"
-					type="text"
-					required
-					placeholder="Add Task" />
-				<button type="submit">Add</button>
-			</form>
-		</section>
-	`;
+	taskListTemplate.innerHTML = taskListTemplateString;
 	return taskListTemplate;
 };
 
-export type TaskList = TaskListClass;
-class TaskListClass extends HTMLElement {
+export type TaskList = TaskListElement;
+class TaskListElement extends HTMLElement {
 	_name;
 	// @ts-ignore
 	_list: HTMLUListElement;
@@ -74,6 +92,7 @@ class TaskListClass extends HTMLElement {
 				id: tempId,
 				name: this._name,
 			});
+			console.log(item);
 			form.titleText.value = '';
 
 			const response = await fetch('/api/tasks', {
@@ -85,8 +104,8 @@ class TaskListClass extends HTMLElement {
 				throw new Error();
 			}
 			const id = await response.text();
-			item.dataset.id = id;
-			item.id = id;
+			//item.dataset.id = id;
+			item.setAttribute('id', id);
 
 			this.refresh();
 		};
@@ -101,17 +120,20 @@ class TaskListClass extends HTMLElement {
 		name: string;
 	}) {
 		const { text, completed, id, name } = data;
-		const li = document.createElement('li');
-		li.innerHTML = html`
-			<task-item
-				id="${id}"
-				data-text="${text}"
-				name="${name}"
-				completed="${completed}">
-			</task-item>
-		`;
-		this._list.appendChild(li);
-		return li.firstElementChild as TaskItem;
+		const listItemTemplate = document.createElement('template');
+		listItemTemplate.innerHTML = listItemTemplateString({
+			text,
+			completed,
+			id,
+			name,
+		});
+		//console.log(listItemTemplate.innerHTML);
+		const node = listItemTemplate.content.cloneNode(
+			true
+		) as DocumentFragment;
+		const testEl = node.firstElementChild;
+		this._list.appendChild(node);
+		return testEl!.querySelector('task-item')!;
 	}
 
 	async refresh() {
@@ -130,6 +152,7 @@ class TaskListClass extends HTMLElement {
 		const tasks = parsed.data;
 
 		const currentListItems = [...this._list.children] as HTMLLIElement[];
+
 		const completedItems = currentListItems.filter((el) => {
 			const item = el.firstElementChild as TaskItem;
 			const result = tasks.findIndex(({ id }) => item.id === id);
@@ -155,4 +178,4 @@ class TaskListClass extends HTMLElement {
 }
 
 export const tagName = 'task-list';
-customElements.define(tagName, TaskListClass);
+customElements.define(tagName, TaskListElement);

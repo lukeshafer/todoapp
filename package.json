@@ -13,13 +13,13 @@
   "dependencies": {
     "@astrojs/node": "^4.0.0",
     "@formkit/auto-animate": "1.0.0-beta.5",
-    "@prisma/client": "^4.7.1",
+    "@prisma/client": "^4.8.0",
     "astro": "^1.7.2",
     "dayjs": "^1.11.7",
     "zod": "^3.20.2"
   },
   "devDependencies": {
-    "prisma": "^4.7.1",
+    "prisma": "^4.8.0",
     "prisma-zod-generator": "^0.8.2"
   }
 }

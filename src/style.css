@@ -162,6 +162,7 @@
 		overflow: hidden;
 		white-space: nowrap;
 		clip: rect(1px, 1px, 1px, 1px);
+		z-index: -1;
 		width: 1px;
 		height: 1px;
 	}
@@ -189,6 +190,10 @@
 		color: var(--base-6);
 	}
 
+	task-item input:focus + label {
+		/*outline: 2px solid var(--base-8);*/
+	}
+
 	task-item label::before {
 		/* custom checkbox */
 		content: '';
@@ -208,6 +213,10 @@
 		background-color: var(--base-4);
 		border: 3px solid var(--base-0);
 		outline: 1px solid var(--base-4);
+	}
+
+	task-item input:focus + label::before {
+		outline: 3px solid var(--base-8);
 	}
 
 	task-item button {
