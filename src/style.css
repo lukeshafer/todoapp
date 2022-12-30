@@ -1,4 +1,4 @@
-@layer reset, body;
+@layer reset, body, theme;
 @import url('https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&family=Comfortaa:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600&display=swap');
 @import 'https://unpkg.com/open-props';
 @import 'https://unpkg.com/open-props/colors-hsl.min.css';
@@ -30,15 +30,13 @@
 
 @layer base {
 	html {
-		--font-display: 'Comfortaa', var(--font-sans);
-		--font-body: 'Open Sans', var(--font-sans);
 		font-weight: 500;
 		font-family: var(--font-body);
-		background-color: var(--indigo-0);
+		background-color: var(--bg-main);
 		background: linear-gradient(
 			to left bottom,
-			var(--stone-0),
-			var(--indigo-1)
+			var(--bg-gradient-1),
+			var(--bg-gradient-2)
 		);
 		background-size: auto max(100vh, 100%);
 		background-repeat: no-repeat;
@@ -47,11 +45,11 @@
 
 	header {
 		padding: 1.3rem;
-		color: var(--gray-0);
+		color: var(--text-light);
 		background: linear-gradient(
 			190deg,
-			var(--violet-10),
-			var(--violet-11) 200%
+			var(--header-bg-1),
+			var(--header-bg-2) 200%
 		);
 	}
 
@@ -190,10 +188,6 @@
 		color: var(--base-6);
 	}
 
-	task-item input:focus + label {
-		/*outline: 2px solid var(--base-8);*/
-	}
-
 	task-item label::before {
 		/* custom checkbox */
 		content: '';
@@ -326,5 +320,18 @@
 		left: calc(50% - var(--long) / 2);
 		top: calc(50% - var(--short) / 2);
 		position: absolute;
+	}
+}
+
+@layer theme {
+	html {
+		--font-display: 'Comfortaa', var(--font-sans);
+		--font-body: 'Open Sans', var(--font-sans);
+		--bg-main: var(--indigo-0);
+		--bg-gradient-1: var(--stone-0);
+		--bg-gradient-2: var(--indigo-1);
+		--text-light: var(--gray-0);
+		--header-bg-1: var(--violet-10);
+		--header-bg-2: var(--violet-11);
 	}
 }
