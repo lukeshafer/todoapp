@@ -1,8 +1,16 @@
 ---
-import '../style.css';
+import TaskList from "../components/TaskList";
+import { client } from "../db";
 
-import dayjs from 'dayjs';
-const today = dayjs().format('MMM D, YYYY');
+import dayjs from "dayjs";
+const today = dayjs().format("MMM D, YYYY");
+
+const name = Astro.cookies.get("name").value as "luke" | "anahita" | undefined;
+
+const lukeId = await client.user.findFirst({ where: { name: "luke" } });
+const anahitaId = await client.user.findFirst({ where: { name: "anahita" } });
+
+console.log("name", name);
 ---
 
 <html lang="en">
@@ -11,6 +19,7 @@ const today = dayjs().format('MMM D, YYYY');
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
+		<link rel="stylesheet" href="style.css" />
 		<title>Beb Todo</title>
 	</head>
 	<body>
@@ -19,16 +28,32 @@ const today = dayjs().format('MMM D, YYYY');
 			<options-menu></options-menu>
 		</header>
 		<main>
-			<anahita-list></anahita-list>
-			<luke-list></luke-list>
+			<TaskList client:load name="luke" userId="1" />
+			<TaskList client:load name="anahita" userId="1" />
+			{
+				/*{*/
+				/*name === "luke" ? (*/
+				/*<>*/
+				/*<luke-list />*/
+				/*<anahita-list />*/
+				/*</>*/
+				/*) : (*/
+				/*<>*/
+				/*<anahita-list />*/
+				/*<luke-list />*/
+				/*</>*/
+				/*)*/
+				/*}*/
+			}
 		</main>
 
 		<script>
-			import '../elements/anahita-list.js';
-			import '../elements/luke-list.js';
-			import '../elements/task-list.js';
-			import '../elements/task-item.js';
-			import '../elements/options-menu.js';
+			/*import "../elements/anahita-list.js";*/
+			/*import "../elements/luke-list.js";*/
+			/*import "../elements/task-list.js";*/
+			import "../elements/task-item.js";
+			import "../elements/options-menu.js";
+			import "../elements/task-options.js";
 		</script>
 	</body>
 </html>

@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "@astrojs/node": "^4.0.0",
+    "@astrojs/solid-js": "^1.2.3",
     "@formkit/auto-animate": "1.0.0-beta.5",
     "@prisma/client": "^4.8.0",
     "astro": "^1.7.2",
     "dayjs": "^1.11.7",
+    "solid-js": "^1.4.3",
     "zod": "^3.20.2"
   },
   "devDependencies": {
