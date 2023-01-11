@@ -1,7 +1,7 @@
 import autoAnimate from "@formkit/auto-animate";
-import { createSignal, For, onMount, Signal } from "solid-js";
+import { For, onMount } from "solid-js";
 import type { TaskInput } from "../lib/api-schemas";
-import { todoListStore } from "../lib/state";
+import { getTodoListFor } from "../lib/state";
 
 interface Props {
     name: string;
@@ -11,6 +11,7 @@ interface Props {
 export default function TaskList({ name: userName, userId }: Props) {
     let ulist: HTMLUListElement;
     const inputId = `input-${userId}`;
+    const todoListStore = getTodoListFor(userName);
 
     onMount(() => {
         autoAnimate(ulist);
@@ -28,7 +29,7 @@ export default function TaskList({ name: userName, userId }: Props) {
             title: text,
         };
 
-        const tempId = Symbol();
+        const tempId = `${Math.floor(Math.random() * 99999 + 100000)}`;
         todoListStore.push({
             text,
             completed: false,

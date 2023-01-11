@@ -5,12 +5,19 @@ import { client } from "../db";
 import dayjs from "dayjs";
 const today = dayjs().format("MMM D, YYYY");
 
-const name = Astro.cookies.get("name").value as "luke" | "anahita" | undefined;
+/*const name = Astro.cookies.get("name").value as "luke" | "anahita" | undefined;*/
 
-const lukeId = await client.user.findFirst({ where: { name: "luke" } });
-const anahitaId = await client.user.findFirst({ where: { name: "anahita" } });
+const lukeId = await client.user
+	.findFirst({ where: { name: "Luke" } })
+	.then((res) => res?.id);
 
-console.log("name", name);
+const anahitaId = await client.user
+	.findFirst({ where: { name: "Anahita" } })
+	.then((res) => res?.id);
+
+if (!lukeId || !anahitaId) throw new Error("User ID not found!");
+
+/*console.log("name", name);*/
 ---
 
 <html lang="en">
@@ -28,8 +35,8 @@ console.log("name", name);
 			<options-menu></options-menu>
 		</header>
 		<main>
-			<TaskList client:load name="luke" userId="1" />
-			<TaskList client:load name="anahita" userId="1" />
+			<TaskList client:load name="Luke" userId={lukeId} />
+			<TaskList client:load name="Anahita" userId={anahitaId} />
 			{
 				/*{*/
 				/*name === "luke" ? (*/
