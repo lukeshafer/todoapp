@@ -1,15 +1,16 @@
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import { client } from '../../db';
+import type { APIRoute } from "astro";
+import { z } from "zod";
+import { client } from "../../db";
 
 const taskInputSchema = z.object({
 	id: z.string(),
-	completed: z.preprocess((arg) => arg === 'true', z.boolean()),
+	completed: z.preprocess((arg) => arg === "true", z.boolean()),
 });
 export type TaskCompletionInput = z.infer<typeof taskInputSchema>;
 export const post: APIRoute = async ({ request, redirect }) => {
 	try {
 		const data = await request.text();
+		console.debug("data:", data);
 
 		const params = Object.fromEntries([
 			...new URLSearchParams(data).entries(),
@@ -28,12 +29,13 @@ export const post: APIRoute = async ({ request, redirect }) => {
 			},
 		});
 
-		return redirect('/', 302);
+		return redirect("/", 302);
 	} catch {
-		console.error('complete task');
+		console.error("Error occurred while completing task");
+
 		return new Response(null, {
 			status: 500,
-			statusText: 'Uh oh!',
+			statusText: "Uh oh!",
 		});
 	}
 };
