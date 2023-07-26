@@ -16,13 +16,12 @@ export default function TaskList({ name: userName, userId }: Props) {
 	const todoListStore = getTodoListFor(userName);
 
 	onMount(() => {
-		autoAnimate(ulist);
+		//autoAnimate(ulist);
 	});
 
 	async function handleFormSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		const form = e.currentTarget as HTMLFormElement;
-
 		const text = form.taskTitle.value as string;
 		form.taskTitle.value = "";
 
@@ -31,7 +30,7 @@ export default function TaskList({ name: userName, userId }: Props) {
 			title: text,
 		};
 
-		const tempId = `${Math.floor(Math.random() * 99999 + 100000)}`;
+		const tempId = "temp-" + Math.random();
 		todoListStore.push({
 			text,
 			completed: false,
@@ -63,30 +62,31 @@ export default function TaskList({ name: userName, userId }: Props) {
 			<ul ref={ulist!}>
 				<Index each={todoListStore.values}>
 					{(todo) => (
-						<Todo
-							todo={todo()}
-							completeTodo={() => {
-								todoListStore.toggleCompleted(todo().id);
-								fetch("/api/completeTask", {
-									method: "post",
-									body: new URLSearchParams(
-										Object.entries({
-											id: todo().id,
-											completed: todo().completed
-												? "true"
-												: "false",
-										})
-									),
-								}).then((res) => {
-									if (!res.ok) {
-										console.error(
-											"Unable to change status"
-										);
-										throw new Error();
-									}
-								});
-							}}
-						/>
+						<p>
+							{todo().text}
+							{
+								//<Todo
+								//todo={todo()}
+								//completeTodo={() => {
+								//todoListStore.toggleCompleted(todo().id);
+								//fetch("/api/completeTask", {
+								//method: "post",
+								//body: new URLSearchParams(
+								//Object.entries({
+								//id: todo().id,
+								//completed: todo().completed ? "true" : "false",
+								//})
+								//),
+								//}).then((res) => {
+								//if (!res.ok) {
+								//console.error("Unable to change status");
+								//throw new Error();
+								//}
+								//});
+								//}}
+								///>
+							}
+						</p>
 					)}
 				</Index>
 			</ul>
@@ -95,18 +95,14 @@ export default function TaskList({ name: userName, userId }: Props) {
 				<label for={inputId} class="visually-hidden">
 					Add Task
 				</label>
-				<input
-					name="taskTitle"
-					type="text"
-					id={inputId}
-					required
-					placeholder="Add Task"
-				/>
+				<input name="taskTitle" type="text" id={inputId} required placeholder="Add Task" />
 				<button type="submit" class="form-button">
 					Add
 				</button>
-				{/* @ts-expect-error - will be auto fixed once everything is solid*/}
-				<task-options></task-options>
+				{/* ts-expect-error - will be auto fixed once everything is solid*/}
+				{
+					//<task-options></task-options>
+				}
 			</form>
 		</section>
 	);
